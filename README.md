@@ -1,13 +1,24 @@
+<div align="center">
+
 # Self-Healing Ops v2.0
 
-**Intelligent AIOps Self-Healing System**
+### Intelligent AIOps Self-Healing System
 
-MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
+**MCP Multi-Agent based automated fault detection, diagnosis, and repair platform**
 
-- Realistic e-commerce microservice architecture
-- 8 production-grade fault scenarios  
-- 11 repair actions with rollback support
-- End-to-end self-healing pipeline
+Realistic e-commerce microservice architecture - 8 production-grade fault scenarios - 11 repair actions - End-to-end self-healing
+
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-Protocol-FF6B35?style=for-the-badge&logo=modelcontextprotocol&logoColor=white)
+![LLM](https://img.shields.io/badge/LLM-Anthropic_Compatible-6C3483?style=for-the-badge&logo=anthropic&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+
+</div>
+
+---
 
 ## Architecture
 
@@ -143,14 +154,14 @@ python main.py run high_cpu
 
 | # | Scenario | Level | Description | Root Cause | Key Metrics |
 |---|----------|-------|-------------|------------|-------------|
-| 1 | high_cpu | P0 | CPU spike | ReDoS catastrophic backtracking | CPU 98.3%, Load 28.5 |
-| 2 | memory_leak | P0 | Memory leak | Java Heap HashMap infinite growth | MEM 96.8%, OOM x4, GC 4.5s |
-| 3 | service_crash | P0 | Service crash + rollback fail | Missing deploy config | exit 1, 503, CB Open |
-| 4 | db_slow | P1 | DB slow query | Full table scan + row lock contention | 15.2s, lock wait 847 |
-| 5 | connection_pool_exhaustion | P1 | Connection pool exhaustion | Redis connection leak | maxclients 10000 |
-| 6 | disk_full | P0 | Disk full | Binlog unrotated for 90 days | Disk 98.5% |
-| 7 | cascading_failure | P0 | Cascading failure | Redis down -> cache stampede -> DB overload | 30% 5xx |
-| 8 | deployment_regression | P1 | Deployment regression | N+1 query bug | 847 queries/req |
+| 1 | `high_cpu` | <kbd>P0</kbd> | CPU spike | ReDoS catastrophic backtracking | CPU 98.3%, Load 28.5 |
+| 2 | `memory_leak` | <kbd>P0</kbd> | Memory leak | Java Heap HashMap infinite growth | MEM 96.8%, OOM x4, GC 4.5s |
+| 3 | `service_crash` | <kbd>P0</kbd> | Service crash + rollback fail | Missing deploy config | exit 1, 503, CB Open |
+| 4 | `db_slow` | <kbd>P1</kbd> | DB slow query | Full table scan + row lock contention | 15.2s, lock wait 847 |
+| 5 | `connection_pool_exhaustion` | <kbd>P1</kbd> | Connection pool exhaustion | Redis connection leak | maxclients 10000 |
+| 6 | `disk_full` | <kbd>P0</kbd> | Disk full | Binlog unrotated for 90 days | Disk 98.5% |
+| 7 | `cascading_failure` | <kbd>P0</kbd> | **Cascading failure** | Redis down -> cache stampede -> DB overload | 30% 5xx |
+| 8 | `deployment_regression` | <kbd>P1</kbd> | Deployment regression | N+1 query bug | 847 queries/req |
 
 ## Self-Healing Pipeline
 
@@ -260,18 +271,54 @@ self-healing-ops/
 
 ## Configuration
 
-API keys are configured via environment variables or `.env` file:
+<details>
+<summary><b>API Key Configuration</b></summary>
+
+API keys are configured via environment variables or `.env` file (do NOT hardcode API keys):
 
 ```bash
 # .env file
-MONITOR_API_KEY=your-api-key-here
-DIAGNOSTIC_API_KEY=your-api-key-here
-REPAIR_API_KEY=your-api-key-here
+MONITOR_API_KEY=sk-ant-xxx      # Tier-1 Monitor Agent
+DIAGNOSTIC_API_KEY=sk-ant-xxx   # Tier-2 Diagnostic Agent
+REPAIR_API_KEY=sk-ant-xxx       # Tier-3 Repair Agent
 LLM_MODEL=claude-3-5-sonnet-20241022
 MIMO_BASE_URL=https://api.anthropic.com
 ```
 
-All 3 agents can use the same API key, or configure separately.
+All 3 agents can use the same API key, or configure separately to simulate different quota tiers.
+
+</details>
+
+<details>
+<summary><b>Monitoring Thresholds</b></summary>
+
+```python
+THRESHOLDS = {
+    "cpu_critical": 90.0,              # CPU > 90% => CRITICAL
+    "memory_critical": 92.0,           # MEM > 92% => CRITICAL
+    "disk_critical": 90.0,             # DISK > 90% => CRITICAL
+    "error_rate_critical": 0.10,       # Error rate > 10% => CRITICAL
+    "latency_p99_critical_ms": 2000,   # p99 > 2s => CRITICAL
+    "sla_target": 99.9,                # Three nines
+    "error_budget_burn_rate_threshold": 14.4,  # 2% budget in 1h
+}
+```
+
+</details>
+
+<details>
+<summary><b>Escalation Policy</b></summary>
+
+```python
+ESCALATION_POLICY = {
+    "P0_critical": {"auto_remediate": True,  "requires_approval": False},
+    "P1_high":     {"auto_remediate": True,  "requires_approval": False},
+    "P2_medium":   {"auto_remediate": True,  "requires_approval": True},
+    "P3_low":      {"auto_remediate": False, "requires_approval": True},
+}
+```
+
+</details>
 
 ## v1.0 vs v2.0
 
