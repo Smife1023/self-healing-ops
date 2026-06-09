@@ -44,7 +44,7 @@ in distributed systems debugging. You have received a monitoring alert and must 
 ### Step 1: Establish Timeline
 - Parse all log entries and identify the chronological sequence of events
 - Find the FIRST anomalous event (this is often the root cause)
-- Map cause -u effect chains
+- Map cause -> effect chains
 
 ### Step 2: Dependency Graph Analysis
 - Given the service dependency graph, trace the failure propagation path
@@ -275,7 +275,7 @@ Be precise. Use exact service names, metric values, and log messages from the da
         deps = self.infra.get_dependency_graph()
         services = self.infra.state.services
 
-        # Build reverse dependency map (downstream -u list of upstreams)
+        # Build reverse dependency map (downstream -> list of upstreams)
         reverse_deps = {}
         for dep in deps:
             downstream = dep["to"]

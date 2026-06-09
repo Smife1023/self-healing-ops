@@ -92,7 +92,7 @@ class MCPAgentServer(ABC):
             elapsed = (time.time() - start) * 1000
             self.logger.debug(
                 f"[{trace_id}] {request.method} {request.url.path} "
-                f"-u {response.status_code} ({elapsed:.0f}ms)"
+                f"-> {response.status_code} ({elapsed:.0f}ms)"
             )
             return response
 

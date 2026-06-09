@@ -5,7 +5,7 @@
 MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
 
 - Realistic e-commerce microservice architecture
-- 8 production-grade fault scenarios
+- 8 production-grade fault scenarios  
 - 11 repair actions with rollback support
 - End-to-end self-healing pipeline
 
@@ -49,7 +49,7 @@ MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
                                  v
                      +-----------------------+
                      |   MCP Coordinator     |
-                     |   Pipeline Orchestration
+                     |   Pipeline Orchest.   |
                      |   Incident Timeline  |
                      |   Post-Mortem Report |
                      +-----------------------+
@@ -58,28 +58,28 @@ MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
 ## Features
 
 ### Realistic Infrastructure
-- 6 servers: LB / App x2 / DB Master / DB Replica / Cache+Queue
-- 12 microservices: Full e-commerce chain (User -> Order -> Payment -> Inventory)
-- 17 dependency edges: gRPC / HTTP / MySQL / Redis / AMQP
-- Service dependency graph with cascading failure propagation
+- **6 servers**: LB / App x2 / DB Master / DB Replica / Cache+Queue
+- **12 microservices**: Full e-commerce chain (User -> Order -> Payment -> Inventory)
+- **17 dependency edges**: gRPC / HTTP / MySQL / Redis / AMQP
+- **Service dependency graph** with cascading failure propagation
 
 ### SRE Best Practices
-- SLO Burn-Rate: Google SRE 4-window alerting method
-- Escalation Policy: P0-P3 graduated auto-remediation
-- Blast Radius: Real-time fault impact assessment
-- Post-Mortem: Automatic incident timeline generation
+- **SLO Burn-Rate**: Google SRE 4-window alerting method
+- **Escalation Policy**: P0-P3 graduated auto-remediation
+- **Blast Radius**: Real-time fault impact assessment
+- **Post-Mortem**: Automatic incident timeline generation
 
 ### 3-Agent Collaboration
-- MonitorAgent (Tier-1): Fast detection, SLO analysis
-- DiagnosticAgent (Tier-2): Deep diagnosis, root cause localization
-- RepairAgent (Tier-3): Runbook execution, rollback protection
-- Separate API Keys: Simulates different service account tiers
+- **MonitorAgent** (Tier-1): Fast detection, SLO analysis
+- **DiagnosticAgent** (Tier-2): Deep diagnosis, root cause localization
+- **RepairAgent** (Tier-3): Runbook execution, rollback protection
+- **Separate API Keys**: Simulates different service account tiers
 
 ### Full Auto Self-Healing
-- 11 repair actions: restart / rollback / scale / index / circuit breaker...
-- Per-step verification: Auto health check after each repair
-- Auto rollback: Immediate revert on failure
-- Side-effect reporting: Records impact of every operation
+- **11 repair actions**: restart / rollback / scale / index / circuit breaker
+- **Per-step verification**: Auto health check after each repair
+- **Auto rollback**: Immediate revert on failure
+- **Side-effect reporting**: Records impact of every operation
 
 ## Quick Start
 
@@ -89,7 +89,7 @@ MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
 |------------|---------|
 | Python     | 3.10+   |
 | Conda env  | autodev-agent |
-| LLM API    | Any Anthropic-compatible API (Claude, MiMo, etc.) |
+| LLM API    | Any Anthropic-compatible API |
 
 ### Install and Run
 
@@ -118,7 +118,7 @@ python main.py all service_crash         # Service crash
 python main.py all db_slow               # DB slow query
 python main.py all connection_pool_exhaustion  # Connection pool exhaustion
 python main.py all disk_full             # Disk full
-python main.py all cascading_failure     # Cascading failure [star]
+python main.py all cascading_failure     # Cascading failure
 python main.py all deployment_regression # Deployment regression
 python main.py all random               # Random scenario
 
@@ -160,17 +160,16 @@ python main.py run high_cpu
 |                                                                          |
 |  Step 1 ---> Step 2 ---> Step 3 ---> Step 4 ---> Step 5                |
 |   Detect      Diagnose    Plan      Execute     Verify                  |
-|                                                                          |
 +-------------------------------------------------------------------------+
 ```
 
 | Stage | Agent | Capabilities | Output |
 |-------|-------|-------------|--------|
-| Step 1: Detect | MonitorAgent | SLO burn-rate, multi-signal anomaly detection, cascading failure identification | Structured alert JSON |
-| Step 2: Diagnose | DiagnosticAgent | Log timeline reconstruction, dependency graph BFS, multi-signal correlation, blast radius | Root cause report |
-| Step 3: Plan | RepairAgent | 4-phase Runbook (Mitigate->Resolve->Verify->Prevent), risk assessment, rollback plan | Repair plan JSON |
-| Step 4: Execute | RepairAgent | Step-by-step execution, per-step health check, failure rollback, side-effect recording | Execution result JSON |
-| Step 5: Verify | Coordinator | Full health check, SLO validation, incident timeline, Post-Mortem report | Final health report |
+| Step 1: Detect | MonitorAgent | SLO burn-rate, anomaly detection, cascading failure ID | Alert JSON |
+| Step 2: Diagnose | DiagnosticAgent | Timeline rebuild, dependency BFS, blast radius | Root cause report |
+| Step 3: Plan | RepairAgent | 4-phase Runbook, risk assessment, rollback plan | Repair plan JSON |
+| Step 4: Execute | RepairAgent | Step-by-step exec, health check, rollback, side-effects | Execution result |
+| Step 5: Verify | Coordinator | Health check, SLO validation, timeline, Post-Mortem | Final report |
 
 ## MCP Tools
 
@@ -215,7 +214,7 @@ python main.py run high_cpu
 | add_index | Create database index | Low | Yes | Slow query |
 | failover_replica | Promote replica to primary | High | Complex | Primary unavailable |
 | drain_connections | Drain stale connections | Low | N/A | Connection leak |
-| circuit_breaker_reset | Reset circuit breaker | Low | Auto | Circuit breaker false trigger |
+| circuit_breaker_reset | Reset circuit breaker | Low | Auto | CB false trigger |
 
 ## Monitoring Metrics
 
@@ -244,8 +243,8 @@ self-healing-ops/
 |-- config.py              # API Key, thresholds, SLA, escalation policy
 |-- infrastructure.py      # Infrastructure simulator
 |                            6 servers / 12 services / 17 deps / 8 faults
-|-- mcp_agent_server.py    # MCP Server base class (FastAPI + LLM + retry + metrics)
-|-- coordinator.py         # MCP Coordinator (pipeline + incident timeline + Post-Mortem)
+|-- mcp_agent_server.py    # MCP Server base (FastAPI + LLM + retry + metrics)
+|-- coordinator.py         # Coordinator (pipeline + timeline + Post-Mortem)
 |-- main.py                # Entry point (single-process / distributed / interactive)
 |-- requirements.txt       # Python dependencies
 |-- .env.example           # Environment variable template
@@ -254,25 +253,25 @@ self-healing-ops/
 |
 |-- agents/
 |   |-- __init__.py
-|   |-- monitor_agent.py   # Monitor Agent - SLO burn-rate + multi-signal detection
-|   |-- diagnostic_agent.py # Diagnostic Agent - dependency graph traversal + root cause
+|   |-- monitor_agent.py   # Monitor Agent - SLO burn-rate + detection
+|   |-- diagnostic_agent.py # Diagnostic Agent - dependency graph + root cause
 |   |-- repair_agent.py    # Repair Agent - Runbook + rollback + verification
 ```
 
 ## Configuration
 
-API keys are configured via environment variables or `.env` file (do NOT hardcode API keys):
+API keys are configured via environment variables or `.env` file:
 
 ```bash
 # .env file
-MONITOR_API_KEY=sk-ant-xxx      # Tier-1 Monitor Agent
-DIAGNOSTIC_API_KEY=sk-ant-xxx   # Tier-2 Diagnostic Agent
-REPAIR_API_KEY=sk-ant-xxx       # Tier-3 Repair Agent
+MONITOR_API_KEY=your-api-key-here
+DIAGNOSTIC_API_KEY=your-api-key-here
+REPAIR_API_KEY=your-api-key-here
 LLM_MODEL=claude-3-5-sonnet-20241022
 MIMO_BASE_URL=https://api.anthropic.com
 ```
 
-All 3 agents can use the same API key, or configure separately to simulate different quota tiers.
+All 3 agents can use the same API key, or configure separately.
 
 ## v1.0 vs v2.0
 
@@ -282,9 +281,9 @@ All 3 agents can use the same API key, or configure separately to simulate diffe
 | Services | 6 | 12 (Full e-commerce microservices) |
 | Fault Scenarios | 6 | 8 (+cascading failure, +deployment regression) |
 | Dependency Graph | N/A | 17 edges + BFS traversal |
-| Monitoring | CPU/Memory | SLO burn-rate / p99 / connection pool / GC / circuit breaker |
-| Diagnosis | Simple alerts | Dependency graph traversal, timeline reconstruction, blast radius |
-| Repair Actions | 6 | 11 (+rollback/index/circuit breaker/connection drain...) |
+| Monitoring | CPU/Memory | SLO burn-rate / p99 / conn pool / GC / CB |
+| Diagnosis | Simple alerts | Dep graph traversal, timeline, blast radius |
+| Repair Actions | 6 | 11 (+rollback/index/CB/conn drain) |
 | Rollback | N/A | Per-step rollback support |
 | Event Tracking | N/A | Full timeline + Post-Mortem |
 | Agent Tools | 6 | 12 (4 tools per agent) |
@@ -304,12 +303,10 @@ All 3 agents can use the same API key, or configure separately to simulate diffe
 | Agent Framework | Custom MCP Server (FastAPI) |
 | LLM | Any Anthropic-compatible API |
 | Communication | MCP (Model Context Protocol) over HTTP |
-| Infrastructure | Simulator (6 servers + 12 services + dependency graph) |
+| Infrastructure | Simulator (6 servers + 12 services + dep graph) |
 | Coordinator | Async HTTP orchestration + incident timeline |
-| Monitoring | SLO burn-rate, p50/p99 latency, connection pool, GC, circuit breaker |
+| Monitoring | SLO burn-rate, p50/p99, conn pool, GC, CB |
 
 ---
 
-Built with care by Self-Healing Ops Team
-
-*MCP Multi-Agent - LLM-Driven - Production-Grade AIOps*
+Built by Self-Healing Ops Team

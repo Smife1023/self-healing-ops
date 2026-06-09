@@ -271,10 +271,10 @@ For each step, specify:
 
     async def _execute_repair(self, action: str, target: str, params: dict = None) -> str:
         """Execute a single repair action and return the result."""
-        self.logger.info(f"Executing repair: {action} -u {target}")
+        self.logger.info(f"Executing repair: {action} -> {target}")
         result = self.infra.apply_fix(action, target, params)
         self.logger.info(
-            f"Repair result: {action}/{target} -u "
+            f"Repair result: {action}/{target} -> "
             f"success={result['success']}, msg={result['message']}"
         )
         return json.dumps(result, ensure_ascii=False, indent=2)
@@ -305,7 +305,7 @@ For each step, specify:
             })
 
         rollback_action, rollback_target = rollback_info
-        self.logger.info(f"Rolling back: {action}/{target} -u {rollback_action}/{rollback_target}")
+        self.logger.info(f"Rolling back: {action}/{target} -> {rollback_action}/{rollback_target}")
         result = self.infra.apply_fix(rollback_action, rollback_target)
         result["rollback_of"] = f"{action}/{target}"
         return json.dumps(result, ensure_ascii=False, indent=2)

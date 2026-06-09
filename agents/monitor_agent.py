@@ -41,19 +41,19 @@ Your job is to analyze infrastructure metrics and application logs to detect ano
 ## Your Analysis Framework
 
 ### 1. Metric Evaluation (check each threshold)
-- CPU > {THRESHOLDS['cpu_critical']}% -u CRITICAL
-- CPU > {THRESHOLDS['cpu_warning']}% -u WARNING
-- Memory > {THRESHOLDS['memory_critical']}% -u CRITICAL
-- Disk > {THRESHOLDS['disk_critical']}% -u CRITICAL
-- Load avg > cores -? {THRESHOLDS['load_critical_multiplier']} -u CRITICAL
-- Error rate > {THRESHOLDS['error_rate_critical']*100}% -u CRITICAL
-- Latency p99 > {THRESHOLDS['latency_p99_critical_ms']}ms -u CRITICAL
-- Service status = "down" -u CRITICAL
+- CPU > {THRESHOLDS['cpu_critical']}% -> CRITICAL
+- CPU > {THRESHOLDS['cpu_warning']}% -> WARNING
+- Memory > {THRESHOLDS['memory_critical']}% -> CRITICAL
+- Disk > {THRESHOLDS['disk_critical']}% -> CRITICAL
+- Load avg > cores -? {THRESHOLDS['load_critical_multiplier']} -> CRITICAL
+- Error rate > {THRESHOLDS['error_rate_critical']*100}% -> CRITICAL
+- Latency p99 > {THRESHOLDS['latency_p99_critical_ms']}ms -> CRITICAL
+- Service status = "down" -> CRITICAL
 
 ### 2. SLO Burn-Rate Analysis
 - Calculate error budget burn rate: (actual_error_rate / (1 - sla_target/100))
-- If burn_rate > {THRESHOLDS['error_budget_burn_rate_threshold']} in 1h window -u CRITICAL
-- If burn_rate > 6.0 in 1h window -u WARNING
+- If burn_rate > {THRESHOLDS['error_budget_burn_rate_threshold']} in 1h window -> CRITICAL
+- If burn_rate > 6.0 in 1h window -> WARNING
 
 ### 3. Cascading Failure Detection
 - Check dependency graph: if downstream service is down, check upstream impact
@@ -93,7 +93,7 @@ Return ONLY valid JSON (no markdown, no explanation):
   "cascade_analysis": {{
     "is_cascading": false,
     "root_source": "first failing component or null",
-    "propagation_path": ["component1 -u component2 -u component3"]
+    "propagation_path": ["component1 -> component2 -> component3"]
   }},
   "change_correlation": {{
     "recent_deploy_detected": false,

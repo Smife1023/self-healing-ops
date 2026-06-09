@@ -20,9 +20,9 @@ from typing import Optional
 from config import TIMESTAMP_FMT
 
 
-# ~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T
+# ~~~~~~~~T~T~T~T~T~T~T~T~T
 #  Data Models
-# ~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T
+# ~~~~~~~~T~T~T~T~T~T~T~T~T
 
 @dataclass
 class ServerMetrics:
@@ -113,9 +113,9 @@ class InfraState:
     events: list = field(default_factory=list)
 
 
-# ~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T
+# ~~~~~~~~T~T~T~T~T~T~T~T~T
 #  Infrastructure Simulator
-# ~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T~T
+# ~~~~~~~~T~T~T~T~T~T~T~T~T
 
 class InfrastructureSimulator:
     """
@@ -125,7 +125,7 @@ class InfrastructureSimulator:
         [Load Balancer / Nginx]
               )?
         [API Gateway (Kong)]
-          )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+          --
           ~?   ~?       ~?          ~?
       [user-svc] [order-svc] [payment-svc] [inventory-svc]
           )?        )?    )?         )?
@@ -145,7 +145,7 @@ class InfrastructureSimulator:
         self.incident_id: Optional[str] = None
         self._init_infrastructure()
 
-    # )?)? Initialization )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+    # )?)? Initialization ----)?)?)?)?)?)?)?
 
     def _init_infrastructure(self):
         self._init_servers()
@@ -210,7 +210,7 @@ class InfrastructureSimulator:
 
     def _init_services(self):
         self.state.services = {
-            # )?)? Edge Layer )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+            # )?)? Edge Layer ---)?)?)?)?)?)?)?)?)?)?)?
             "nginx": ServiceStatus(
                 name="nginx", service_type="web", port=80, pid=1234,
                 host="web-lb-01", replicas=1,
@@ -226,7 +226,7 @@ class InfrastructureSimulator:
                 memory_rss_mb=512, thread_count=100,
                 connection_pool_size=200, connection_pool_active=80,
             ),
-            # )?)? Application Layer )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+            # )?)? Application Layer ---)?)?)?)?
             "user-service": ServiceStatus(
                 name="user-service", service_type="app", port=8081, pid=3456,
                 host="app-server-01", replicas=2,
@@ -272,7 +272,7 @@ class InfrastructureSimulator:
                 connection_pool_size=20, connection_pool_active=5,
                 heap_usage_pct=30.0, gc_pause_ms=8.0,
             ),
-            # )?)? Data Layer )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+            # )?)? Data Layer ---)?)?)?)?)?)?)?)?)?)?)?
             "mysql-primary": ServiceStatus(
                 name="mysql-primary", service_type="database", port=3306, pid=6000,
                 host="db-master-01", replicas=1,
@@ -356,7 +356,7 @@ class InfrastructureSimulator:
             ts = (now + timedelta(seconds=offset * 5)).strftime(TIMESTAMP_FMT)
             self.state.logs.append(LogEntry(ts, level, source, msg))
 
-    # )?)? Fault Injection )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+    # )?)? Fault Injection ----)?)?)?)?)?
 
     def inject_anomaly(self, scenario: str = "random") -> str:
         self.anomaly_injected = True
@@ -596,8 +596,8 @@ class InfrastructureSimulator:
 
     def _inject_cascading_failure(self, now: str) -> tuple:
         """
-        Scenario: Redis cluster goes down -u cache miss storm -u DB overload
-        -u all services slow -u circuit breakers trip -u platform-wide outage.
+        Scenario: Redis cluster goes down -> cache miss storm -> DB overload
+        -> all services slow -> circuit breakers trip -> platform-wide outage.
         Demonstrates cascading failure through the dependency graph.
         """
         redis = self.state.services["redis-cluster"]
@@ -640,10 +640,10 @@ class InfrastructureSimulator:
             LogEntry(now, "ERROR", "api-gateway",      "Circuit breaker OPEN: user-service (failures: 8/10s)"),
             LogEntry(now, "ERROR", "api-gateway",      "Circuit breaker OPEN: order-service (failures: 12/10s)"),
             LogEntry(now, "ERROR", "nginx",            "5xx rate: 30% -- platform-wide degradation"),
-            LogEntry(now, "FATAL", "system",           "CASCADING FAILURE: Redis down -u cache miss storm -u DB overload -u all services degraded"),
+            LogEntry(now, "FATAL", "system",           "CASCADING FAILURE: Redis down -> cache miss storm -> DB overload -> all services degraded"),
         ])
-        return ("Cascading failure: Redis down -u cache miss storm -u "
-                "DB overload -u platform-wide outage", "P0_critical")
+        return ("Cascading failure: Redis down -> cache miss storm -> "
+                "DB overload -> platform-wide outage", "P0_critical")
 
     def _inject_deployment_regression(self, now: str) -> tuple:
         """
@@ -679,7 +679,7 @@ class InfrastructureSimulator:
         return ("inventory-service v1.6.0 N+1 query regression -- "
                 "847 queries/request, gradual degradation", "P1_high")
 
-    # )?)? Query Methods )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+    # )?)? Query Methods ----)?)?)?)?)?)?)?
 
     def get_monitor_snapshot(self) -> dict:
         """Return a complete monitoring snapshot (as collected by Prometheus/Grafana)."""
@@ -753,7 +753,7 @@ class InfrastructureSimulator:
             for d in self.state.dependencies
         ]
 
-    # )?)? Repair Actions )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+    # )?)? Repair Actions ----)?)?)?)?)?)?)?
 
     def apply_fix(self, action: str, target: str, params: dict = None) -> dict:
         """Execute a repair action and return the result with post-fix snapshot."""
@@ -813,7 +813,7 @@ class InfrastructureSimulator:
         svc.response_time_p99_ms = 120
         svc.circuit_breaker_state = "closed"
         result["success"] = True
-        result["message"] = f"Service {target} restarted (PID: {old_pid} -u {svc.pid})"
+        result["message"] = f"Service {target} restarted (PID: {old_pid} -> {svc.pid})"
         result["actions_taken"] = [
             f"Sent SIGTERM to PID {old_pid}",
             f"Waited for graceful shutdown (timeout: 30s)",
@@ -822,7 +822,7 @@ class InfrastructureSimulator:
         ]
         result["rollback_available"] = True
         self.state.logs.append(LogEntry(now, "INFO", "repair-agent",
-            f"Service {target} restarted: PID {old_pid} -u {svc.pid}, health=OK"))
+            f"Service {target} restarted: PID {old_pid} -> {svc.pid}, health=OK"))
         return result
 
     def _fix_rollback_deploy(self, target: str, now: str, result: dict) -> dict:
@@ -903,13 +903,13 @@ class InfrastructureSimulator:
         result["success"] = True
         result["message"] = f"Scaled {target} from {old_replicas} to {svc.replicas} replicas"
         result["actions_taken"] = [
-            f"Triggered HPA scale-up: {old_replicas} -u {svc.replicas} replicas",
+            f"Triggered HPA scale-up: {old_replicas} -> {svc.replicas} replicas",
             f"Waiting for new pods to be Ready...",
             f"Updated load balancer upstream config",
             f"Traffic redistributed across {svc.replicas} instances",
         ]
         self.state.logs.append(LogEntry(now, "INFO", "repair-agent",
-            f"Scaled {target}: {old_replicas} -u {svc.replicas} replicas"))
+            f"Scaled {target}: {old_replicas} -> {svc.replicas} replicas"))
         return result
 
     def _fix_cleanup_disk(self, target: str, now: str, result: dict) -> dict:
@@ -921,7 +921,7 @@ class InfrastructureSimulator:
         if "mysql-replica" in self.state.services:
             self.state.services["mysql-replica"].status = "running"
         result["success"] = True
-        result["message"] = "Disk space freed: 98.5% -u 62.0%"
+        result["message"] = "Disk space freed: 98.5% -> 62.0%"
         result["actions_taken"] = [
             "Purged binary logs older than 7 days: PURGE BINARY LOGS BEFORE '2024-XX-XX'",
             "Rotated slow query log: mv slow.log slow.log.1 && mysqladmin flush-logs",
@@ -933,7 +933,7 @@ class InfrastructureSimulator:
             "Replicas may need to re-sync (monitoring replication lag)",
         ]
         self.state.logs.append(LogEntry(now, "INFO", "repair-agent",
-            "Disk cleanup completed: 98.5% -u 62.0% -- binlog rotation configured"))
+            "Disk cleanup completed: 98.5% -> 62.0% -- binlog rotation configured"))
         return result
 
     def _fix_config(self, target: str, params: dict, now: str, result: dict) -> dict:
@@ -971,7 +971,7 @@ class InfrastructureSimulator:
         result["actions_taken"] = [
             f"CREATE INDEX idx_orders_status_created ON orders(status, created_at)",
             f"Index build completed in 45s (online DDL, no table lock)",
-            f"EXPLAIN plan verified: full-table scan -u index range scan",
+            f"EXPLAIN plan verified: full-table scan -> index range scan",
             f"Slow query count dropped to 0",
         ]
         if "order-service" in self.state.services:
@@ -1023,15 +1023,15 @@ class InfrastructureSimulator:
         result["success"] = True
         result["message"] = f"Circuit breaker reset to half-open for {target}"
         result["actions_taken"] = [
-            f"Reset circuit breaker state: open -u half-open",
+            f"Reset circuit breaker state: open -> half-open",
             f"Allowing probe requests through",
             f"Will auto-close after 3 successful probes",
         ]
         self.state.logs.append(LogEntry(now, "INFO", "repair-agent",
-            f"Circuit breaker reset for {target}: open -u half-open"))
+            f"Circuit breaker reset for {target}: open -> half-open"))
         return result
 
-    # )?)? Health Check )?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?
+    # )?)? Health Check ----)?)?)?)?)?)?)?)?)?
 
     def health_check(self) -> dict:
         """Comprehensive post-repair health verification."""
