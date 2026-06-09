@@ -1,544 +1,315 @@
-<div align="center">
+# Self-Healing Ops v2.0
 
-# ? Self-Healing Ops v2.0
+**Intelligent AIOps Self-Healing System**
 
-### 智能运维自愈系统
+MCP Multi-Agent based automated fault detection, diagnosis, and repair platform.
 
-<br>
+- Realistic e-commerce microservice architecture
+- 8 production-grade fault scenarios
+- 11 repair actions with rollback support
+- End-to-end self-healing pipeline
 
-**基于 MCP 多 Agent 协作的全自动故障检测、诊断与修复平台**
-
-模拟真实电商微服务架构 · 8 种生产级故障场景 · 11 种修复动作 · 端到端自愈
-
-<br>
-
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![MCP](https://img.shields.io/badge/MCP-Protocol-FF6B35?style=for-the-badge&logo=modelcontextprotocol&logoColor=white)
-![LLM](https://img.shields.io/badge/LLM-MiMo_v2.5_Pro-6C3483?style=for-the-badge&logo=anthropic&logoColor=white)
-
-<br>
-
----
-
-</div>
-
-## ? 项目简介
-
-Self-Healing Ops 是一个 **生产级 AIOps 自愈系统**，通过 3 个独立的 MCP Agent 协作，实现从故障发现到自动修复的完整闭环。
+## Architecture
 
 ```
-  故障发生  ──→  ? 自动检测  ──→  ? 深度诊断  ──→  ? 智能修复  ──→  ? 验证恢复
-    ↑                                                                        │
-    └──────────────────────────── 事件时间线 + 事后报告 ──────────────────────┘
++-------------------------------------------------------------------------+
+|                   E-Commerce Microservice Platform                        |
+|                                                                          |
+|   +----------+    +---------------------------+    +-----------------+  |
+|   |  Nginx   |--->|    API Gateway (Kong)      |    |  db-master-01   |  |
+|   |  (LB)    |    +---+--------+--------+---+    |  MySQL Primary   |  |
+|   +----------+        |        |        |         |  (32C/128G/2TB)  |  |
+|                 +-----+--+ +---+---+ +--+----+   +--------+--------+  |
+|                 | user-  | |order- | |payment|            |            |
+|                 |service | |service| |service|    +-------+--------+  |
+|                 +---+----+ +---+---+ +---+---+    |  db-replica-01 |  |
+|                     |         |         |         |  MySQL Replica  |  |
+|                 +---+---------+---------+---+    +----------------+  |
+|                 |    app-server-01/02        |                        |
+|                 |    (16C/32G each)          |    +-----------------+  |
+|                 +----------------------------+    | cache-queue-01  |  |
+|                                                   | Redis + RabbitMQ|  |
+|   +------------------+                            | (8C/64G)        |  |
+|   | notification-svc | <-- RabbitMQ              +-----------------+  |
+|   | inventory-svc    |                                                 |
+|   | Elasticsearch    |                                                 |
+|   +------------------+                                                 |
++-------------------------------------------------------------------------+
+                                 |
+                     +-----------+-----------+
+                     v           v           v
+              +------------+ +---------+ +------------+
+              |  Monitor   | | Diag    | |  Repair    |
+              |   Agent    | |  Agent  | |   Agent    |
+              |  (Max Key) | | (Std 1) | |  (Std 2)   |
+              |  :9101     | | :9102   | |  :9103     |
+              +------------+ +---------+ +------------+
+                     |           |           |
+                     +-----------+-----------+
+                                 v
+                     +-----------------------+
+                     |   MCP Coordinator     |
+                     |   Pipeline Orchestration
+                     |   Incident Timeline  |
+                     |   Post-Mortem Report |
+                     +-----------------------+
 ```
 
-> **核心价值**: 将平均故障恢复时间 (MTTR) 从 **30+ 分钟** 降低到 **2-5 分钟**，实现 P0/P1 故障的全自动修复。
+## Features
 
-<br>
+### Realistic Infrastructure
+- 6 servers: LB / App x2 / DB Master / DB Replica / Cache+Queue
+- 12 microservices: Full e-commerce chain (User -> Order -> Payment -> Inventory)
+- 17 dependency edges: gRPC / HTTP / MySQL / Redis / AMQP
+- Service dependency graph with cascading failure propagation
 
----
+### SRE Best Practices
+- SLO Burn-Rate: Google SRE 4-window alerting method
+- Escalation Policy: P0-P3 graduated auto-remediation
+- Blast Radius: Real-time fault impact assessment
+- Post-Mortem: Automatic incident timeline generation
 
-## ?? 系统架构
+### 3-Agent Collaboration
+- MonitorAgent (Tier-1): Fast detection, SLO analysis
+- DiagnosticAgent (Tier-2): Deep diagnosis, root cause localization
+- RepairAgent (Tier-3): Runbook execution, rollback protection
+- Separate API Keys: Simulates different service account tiers
 
-<div align="center">
+### Full Auto Self-Healing
+- 11 repair actions: restart / rollback / scale / index / circuit breaker...
+- Per-step verification: Auto health check after each repair
+- Auto rollback: Immediate revert on failure
+- Side-effect reporting: Records impact of every operation
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   E-Commerce Microservice Platform                       │
-│                                                                          │
-│   ┌──────────┐    ┌───────────────────────────┐    ┌─────────────────┐  │
-│   │  Nginx   │───→│    API Gateway (Kong)      │    │  db-master-01   │  │
-│   │  (LB)    │    └──┬────────┬────────┬───┘    │  MySQL Primary   │  │
-│   └──────────┘       │        │        │         │  (32C/128G/2TB)  │  │
-│                 ┌────▼──┐ ┌───▼───┐ ┌──▼────┐   └────────┬────────┘  │
-│                 │ user- │ │order- │ │payment│            │            │
-│                 │service│ │service│ │service│    ┌───────▼────────┐  │
-│                 └───┬───┘ └───┬───┘ └───┬───┘    │  db-replica-01 │  │
-│                     │         │         │         │  MySQL Replica  │  │
-│                 ┌───▼─────────▼─────────▼───┐    └────────────────┘  │
-│                 │    app-server-01/02        │                          │
-│                 │    (16C/32G each)          │    ┌─────────────────┐  │
-│                 └────────────────────────────┘    │ cache-queue-01  │  │
-│                                                   │ Redis + RabbitMQ│  │
-│   ┌──────────────────┐                            │ (8C/64G)        │  │
-│   │ notification-svc │ ←── RabbitMQ              └─────────────────┘  │
-│   │ inventory-svc    │                                                 │
-│   │ Elasticsearch    │                                                 │
-│   └──────────────────┘                                                 │
-└─────────────────────────────────────────────────────────────────────────┘
-                                 │
-                     ┌───────────┼───────────┐
-                     ▼           ▼           ▼
-              ┌────────────┐ ┌─────────┐ ┌────────────┐
-              │  ? Monitor │ │? Diag  │ │  ? Repair  │
-              │   Agent     │ │  Agent  │ │   Agent     │
-              │  (Max Key)  │ │ (Std 1) │ │  (Std 2)    │
-              │  :9101      │ │ :9102   │ │  :9103      │
-              └────────────┘ └─────────┘ └────────────┘
-                     │           │           │
-                     └───────────┼───────────┘
-                                 ▼
-                     ┌───────────────────────┐
-                     │   ? MCP Coordinator   │
-                     │   Pipeline 编排        │
-                     │   Incident Timeline   │
-                     │   Post-Mortem Report  │
-                     └───────────────────────┘
-```
+## Quick Start
 
-</div>
+### Requirements
 
-<br>
+| Dependency | Version |
+|------------|---------|
+| Python     | 3.10+   |
+| Conda env  | autodev-agent |
+| LLM API    | Any Anthropic-compatible API (Claude, MiMo, etc.) |
 
----
-
-## ? 核心特性
-
-<table>
-<tr>
-<td width="50%">
-
-### ? 真实基础设施模拟
-- **6 台服务器**: LB / App×2 / DB Master / DB Replica / Cache+Queue
-- **12 个微服务**: 完整电商链路 (用户→订单→支付→库存)
-- **17 条依赖关系**: gRPC / HTTP / MySQL / Redis / AMQP
-- **服务依赖图**: 支持级联故障传播分析
-
-</td>
-<td width="50%">
-
-### ? SRE 最佳实践
-- **SLO Burn-Rate**: Google SRE 4 窗口告警法
-- **升级策略**: P0-P3 分级自动处置
-- **爆炸半径**: 实时评估故障影响范围
-- **事后报告**: 自动生成 Post-Mortem 时间线
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### ? 3-Agent 协作
-- **MonitorAgent** (Tier-1): 快速检测，SLO 分析
-- **DiagnosticAgent** (Tier-2): 深度诊断，根因定位
-- **RepairAgent** (Tier-3): Runbook 执行，回滚保护
-- **独立 API Key**: 模拟不同服务账号/配额等级
-
-</td>
-<td width="50%">
-
-### ? 全自动自愈
-- **11 种修复动作**: 重启/回滚/扩缩容/索引/熔断器...
-- **每步验证**: 修复后自动健康检查
-- **自动回滚**: 操作失败立即回退
-- **副作用报告**: 记录每个操作的影响
-
-</td>
-</tr>
-</table>
-
-<br>
-
----
-
-## ? 快速开始
-
-### 环境要求
-
-| 依赖 | 版本 |
-|------|------|
-| Python | 3.10+ |
-| Conda 环境 | `autodev-agent` |
-| LLM API | MIMO v2.5 Pro (3 个 API Key) |
-
-### 安装 & 运行
+### Install and Run
 
 ```bash
-# 1. 激活环境
+# 1. Activate environment
 conda activate autodev-agent
 
-# 2. 进入项目
+# 2. Enter project
 cd projectidea/self-healing-ops
 
-# 3. 安装依赖
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. 配置 API Key (首次运行必须)
+# 4. Configure API Key (required for first run)
 cp .env.example .env
-# 编辑 .env 文件，填入你的 API Key:
+# Edit .env file, fill in your API Key:
 #   MONITOR_API_KEY=your-api-key
 #   DIAGNOSTIC_API_KEY=your-api-key
 #   REPAIR_API_KEY=your-api-key
 #   LLM_MODEL=claude-3-5-sonnet-20241022
 
-# 5. 一键运行 (单进程模式，推荐)
-python main.py all high_cpu              # CPU 飙升
-python main.py all memory_leak           # 内存泄漏
-python main.py all service_crash         # 服务崩溃
-python main.py all db_slow               # 数据库慢查询
-python main.py all connection_pool_exhaustion  # 连接池耗尽
-python main.py all disk_full             # 磁盘满
-python main.py all cascading_failure     # 级联故障 ?
-python main.py all deployment_regression # 部署回退
-python main.py all random               # 随机场景
+# 5. Run (single-process mode, recommended)
+python main.py all high_cpu              # CPU spike
+python main.py all memory_leak           # Memory leak
+python main.py all service_crash         # Service crash
+python main.py all db_slow               # DB slow query
+python main.py all connection_pool_exhaustion  # Connection pool exhaustion
+python main.py all disk_full             # Disk full
+python main.py all cascading_failure     # Cascading failure [star]
+python main.py all deployment_regression # Deployment regression
+python main.py all random               # Random scenario
 
-# 5. 交互式选择
+# 6. Interactive selection
 python main.py scenario
 
-# 6. 查看所有场景
+# 7. List all scenarios
 python main.py scenarios
 ```
 
-### 分布式模式
+### Distributed Mode
 
 ```bash
-# 终端 1: 启动 3 个 Agent MCP Server
+# Terminal 1: Start 3 Agent MCP Servers
 python main.py agents
 
-# 终端 2: 运行协调器
+# Terminal 2: Run coordinator
 python main.py run high_cpu
 ```
 
-<br>
+## Fault Scenarios
 
----
+| # | Scenario | Level | Description | Root Cause | Key Metrics |
+|---|----------|-------|-------------|------------|-------------|
+| 1 | high_cpu | P0 | CPU spike | ReDoS catastrophic backtracking | CPU 98.3%, Load 28.5 |
+| 2 | memory_leak | P0 | Memory leak | Java Heap HashMap infinite growth | MEM 96.8%, OOM x4, GC 4.5s |
+| 3 | service_crash | P0 | Service crash + rollback fail | Missing deploy config | exit 1, 503, CB Open |
+| 4 | db_slow | P1 | DB slow query | Full table scan + row lock contention | 15.2s, lock wait 847 |
+| 5 | connection_pool_exhaustion | P1 | Connection pool exhaustion | Redis connection leak | maxclients 10000 |
+| 6 | disk_full | P0 | Disk full | Binlog unrotated for 90 days | Disk 98.5% |
+| 7 | cascading_failure | P0 | Cascading failure | Redis down -> cache stampede -> DB overload | 30% 5xx |
+| 8 | deployment_regression | P1 | Deployment regression | N+1 query bug | 847 queries/req |
 
-## ? 故障场景
-
-<table>
-<tr>
-<th>#</th>
-<th>场景</th>
-<th>级别</th>
-<th>描述</th>
-<th>根因</th>
-<th>关键指标</th>
-</tr>
-<tr>
-<td>1</td>
-<td><code>high_cpu</code></td>
-<td><kbd>P0</kbd></td>
-<td>CPU 飙升</td>
-<td>ReDoS 正则灾难性回溯</td>
-<td>CPU 98.3%, Load 28.5</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>memory_leak</code></td>
-<td><kbd>P0</kbd></td>
-<td>内存泄漏</td>
-<td>Java Heap HashMap 无限增长</td>
-<td>MEM 96.8%, OOM ×4, GC 4.5s</td>
-</tr>
-<tr>
-<td>3</td>
-<td><code>service_crash</code></td>
-<td><kbd>P0</kbd></td>
-<td>服务崩溃 + 回滚失败</td>
-<td>部署配置缺失</td>
-<td>exit 1, 503, CB Open</td>
-</tr>
-<tr>
-<td>4</td>
-<td><code>db_slow</code></td>
-<td><kbd>P1</kbd></td>
-<td>数据库慢查询</td>
-<td>全表扫描 + 行锁争用</td>
-<td>15.2s, 锁等待 847</td>
-</tr>
-<tr>
-<td>5</td>
-<td><code>connection_pool_exhaustion</code></td>
-<td><kbd>P1</kbd></td>
-<td>连接池耗尽</td>
-<td>Redis 连接泄漏</td>
-<td>maxclients 10000</td>
-</tr>
-<tr>
-<td>6</td>
-<td><code>disk_full</code></td>
-<td><kbd>P0</kbd></td>
-<td>磁盘满</td>
-<td>Binlog 90 天未轮转</td>
-<td>Disk 98.5%</td>
-</tr>
-<tr>
-<td>7</td>
-<td><code>cascading_failure</code></td>
-<td><kbd>P0</kbd></td>
-<td>? 级联故障</td>
-<td>Redis→缓存击穿→DB 过载</td>
-<td>30% 5xx, 全平台降级</td>
-</tr>
-<tr>
-<td>8</td>
-<td><code>deployment_regression</code></td>
-<td><kbd>P1</kbd></td>
-<td>部署回退</td>
-<td>N+1 查询 bug</td>
-<td>847 queries/req</td>
-</tr>
-</table>
-
-<br>
-
----
-
-## ? 自愈流水线
+## Self-Healing Pipeline
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Self-Healing Pipeline                             │
-│                                                                          │
-│  Step 1 ──→ Step 2 ──→ Step 3 ──→ Step 4 ──→ Step 5                    │
-│   ? 检测    ? 诊断    ? 计划    ? 执行    ? 验证                    │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------------------+
+|                        Self-Healing Pipeline                              |
+|                                                                          |
+|  Step 1 ---> Step 2 ---> Step 3 ---> Step 4 ---> Step 5                |
+|   Detect      Diagnose    Plan      Execute     Verify                  |
+|                                                                          |
++-------------------------------------------------------------------------+
 ```
 
-| 阶段 | Agent | 能力 | 产出 |
-|------|-------|------|------|
-| **Step 1: 检测** | ? MonitorAgent | SLO burn-rate · 多信号异常检测 · 级联故障识别 · 部署关联 | 结构化告警 JSON |
-| **Step 2: 诊断** | ? DiagnosticAgent | 日志时间线重建 · 依赖图 BFS 遍历 · 多信号关联 · 爆炸半径评估 | 根因分析报告 |
-| **Step 3: 计划** | ? RepairAgent | 4 阶段 Runbook (Mitigate→Resolve→Verify→Prevent) · 风险评估 · 回滚方案 | 修复计划 JSON |
-| **Step 4: 执行** | ? RepairAgent | 逐步执行 · 每步健康检查 · 失败回滚 · 副作用记录 | 执行结果 JSON |
-| **Step 5: 验证** | ? Coordinator | 全面健康检查 · SLO 验证 · 事件时间线 · Post-Mortem 报告 | 最终健康报告 |
+| Stage | Agent | Capabilities | Output |
+|-------|-------|-------------|--------|
+| Step 1: Detect | MonitorAgent | SLO burn-rate, multi-signal anomaly detection, cascading failure identification | Structured alert JSON |
+| Step 2: Diagnose | DiagnosticAgent | Log timeline reconstruction, dependency graph BFS, multi-signal correlation, blast radius | Root cause report |
+| Step 3: Plan | RepairAgent | 4-phase Runbook (Mitigate->Resolve->Verify->Prevent), risk assessment, rollback plan | Repair plan JSON |
+| Step 4: Execute | RepairAgent | Step-by-step execution, per-step health check, failure rollback, side-effect recording | Execution result JSON |
+| Step 5: Verify | Coordinator | Full health check, SLO validation, incident timeline, Post-Mortem report | Final health report |
 
-<br>
+## MCP Tools
 
----
+### MonitorAgent (:9101) - Tier-1 Detection
 
-## ?? MCP 工具一览
+| Tool | Description |
+|------|-------------|
+| monitor_check | Full monitoring + SLO analysis |
+| get_infra_snapshot | Raw monitoring data snapshot |
+| check_service_health | Single service health check |
+| get_dependency_status | Dependency status check |
 
-<table>
-<tr>
-<th width="30%">MonitorAgent (:9101)</th>
-<th width="30%">DiagnosticAgent (:9102)</th>
-<th width="30%">RepairAgent (:9103)</th>
-</tr>
-<tr>
-<td>
+### DiagnosticAgent (:9102) - Tier-2 Diagnosis
 
-| 工具 | 说明 |
-|------|------|
-| `monitor_check` | 全面监控 + SLO 分析 |
-| `get_infra_snapshot` | 原始监控数据快照 |
-| `check_service_health` | 单服务健康检查 |
-| `get_dependency_status` | 依赖状态检查 |
+| Tool | Description |
+|------|-------------|
+| diagnose | Deep root cause analysis |
+| get_detailed_logs | Service detailed logs |
+| get_dependency_graph | Full dependency graph |
+| trace_impact | BFS fault propagation trace |
 
-</td>
-<td>
+### RepairAgent (:9103) - Tier-3 Repair
 
-| 工具 | 说明 |
-|------|------|
-| `diagnose` | 深度根因分析 |
-| `get_detailed_logs` | 服务详细日志 |
-| `get_dependency_graph` | 完整依赖图 |
-| `trace_impact` | BFS 故障传播追踪 |
+| Tool | Description |
+|------|-------------|
+| create_repair_plan | Repair Runbook generation |
+| execute_repair | Execute single repair step |
+| verify_health | Post-repair health verification |
+| rollback_last_action | Rollback last operation |
 
-</td>
-<td>
+## Repair Actions
 
-| 工具 | 说明 |
-|------|------|
-| `create_repair_plan` | 修复 Runbook 生成 |
-| `execute_repair` | 执行单步修复 |
-| `verify_health` | 修复后健康验证 |
-| `rollback_last_action` | 回滚上一操作 |
+| Action | Description | Risk | Reversible | Use Case |
+|--------|-------------|------|------------|----------|
+| restart_service | Graceful service restart | Low | Yes | Service crash/hang |
+| rollback_deploy | Rollback to previous version | Medium | Yes | Deployment regression |
+| kill_process | SIGKILL specific process | Low | N/A | Process stuck |
+| clear_cache | FLUSHALL Redis | Medium | No | Connection leak/cache pollution |
+| scale_up | HPA scale replicas | Low | Yes | Traffic surge |
+| cleanup_disk | Clean logs/Binlog | Low | No | Disk full |
+| fix_config | Inject config from Vault | Medium | Yes | Missing config |
+| add_index | Create database index | Low | Yes | Slow query |
+| failover_replica | Promote replica to primary | High | Complex | Primary unavailable |
+| drain_connections | Drain stale connections | Low | N/A | Connection leak |
+| circuit_breaker_reset | Reset circuit breaker | Low | Auto | Circuit breaker false trigger |
 
-</td>
-</tr>
-</table>
+## Monitoring Metrics
 
-<br>
-
----
-
-## ? 修复动作
-
-| 动作 | 描述 | 风险 | 可逆 | 适用场景 |
-|:-----|:-----|:----:|:----:|:---------|
-| `restart_service` | 优雅重启服务 | ? 低 | ? | 服务崩溃/挂起 |
-| `rollback_deploy` | 回滚到上一版本 | ? 中 | ? | 部署回归 |
-| `kill_process` | SIGKILL 指定进程 | ? 低 | — | 进程卡死 |
-| `clear_cache` | FLUSHALL Redis | ? 中 | ? | 连接泄漏/缓存污染 |
-| `scale_up` | HPA 扩容副本 | ? 低 | ? | 流量突增 |
-| `cleanup_disk` | 清理日志/Binlog | ? 低 | ? | 磁盘满 |
-| `fix_config` | 从 Vault 注入配置 | ? 中 | ? | 配置缺失 |
-| `add_index` | 创建数据库索引 | ? 低 | ? | 慢查询 |
-| `failover_replica` | 提升从库为主库 | ? 高 | ?? | 主库不可用 |
-| `drain_connections` | 排空连接池 | ? 低 | — | 连接泄漏 |
-| `circuit_breaker_reset` | 重置熔断器 | ? 低 | 自动 | 熔断器误触发 |
-
-<br>
-
----
-
-## ? 监控指标
-
-<table>
-<tr>
-<td width="50%">
-
-### 服务器级 (node_exporter)
-- CPU 使用率 / 核心数
-- 内存使用率 / Swap
-- 磁盘使用率 / I/O Wait
-- 网络 RX/TX (Mbps)
+### Server Level (node_exporter)
+- CPU usage / cores
+- Memory usage / Swap
+- Disk usage / I/O Wait
+- Network RX/TX (Mbps)
 - Load Average (1m/5m/15m)
-- TCP 连接数 / TIME_WAIT
+- TCP connections / TIME_WAIT
 - Open Files / Uptime
 
-</td>
-<td width="50%">
+### Application Level (application_metrics)
+- Response time p50 / p99
+- Error rate (5xx/4xx)
+- QPS (requests per minute)
+- Restart count
+- Connection pool (size/active)
+- Heap usage / GC pause
+- Circuit breaker state (closed/open/half-open)
 
-### 应用级 (application_metrics)
-- 响应时间 p50 / p99
-- 错误率 (5xx/4xx)
-- QPS (每分钟请求数)
-- 重启次数
-- 连接池 (大小/活跃)
-- Heap 使用率 / GC 暂停
-- 熔断器状态 (closed/open/half-open)
-
-</td>
-</tr>
-</table>
-
-<br>
-
----
-
-## ? 项目结构
+## Project Structure
 
 ```
 self-healing-ops/
-├── ? config.py                 # API Key、阈值、SLA、升级策略
-├── ? infrastructure.py         # 基础设施模拟器
-│                                  6 台服务器 / 12 个服务 / 17 条依赖 / 8 种故障
-├── ? mcp_agent_server.py       # MCP Server 基类 (FastAPI + LLM + 重试 + 指标)
-├── ? coordinator.py            # MCP 协调器 (流水线 + 事件时间线 + Post-Mortem)
-├── ? main.py                   # 主入口 (单进程 / 分布式 / 交互式)
-├── ? requirements.txt          # Python 依赖
-├── ? README.md                 # 本文件
-│
-└── ? agents/
-    ├── ? __init__.py
-    ├── ? monitor_agent.py      # ? 监控 Agent — SLO burn-rate + 多信号检测
-    ├── ? diagnostic_agent.py   # ? 诊断 Agent — 依赖图遍历 + 根因分析
-    └── ? repair_agent.py       # ? 修复 Agent — Runbook + 回滚 + 验证
+|-- config.py              # API Key, thresholds, SLA, escalation policy
+|-- infrastructure.py      # Infrastructure simulator
+|                            6 servers / 12 services / 17 deps / 8 faults
+|-- mcp_agent_server.py    # MCP Server base class (FastAPI + LLM + retry + metrics)
+|-- coordinator.py         # MCP Coordinator (pipeline + incident timeline + Post-Mortem)
+|-- main.py                # Entry point (single-process / distributed / interactive)
+|-- requirements.txt       # Python dependencies
+|-- .env.example           # Environment variable template
+|-- .gitignore             # Git ignore rules
+|-- README.md              # This file
+|
+|-- agents/
+|   |-- __init__.py
+|   |-- monitor_agent.py   # Monitor Agent - SLO burn-rate + multi-signal detection
+|   |-- diagnostic_agent.py # Diagnostic Agent - dependency graph traversal + root cause
+|   |-- repair_agent.py    # Repair Agent - Runbook + rollback + verification
 ```
 
-<br>
+## Configuration
 
----
-
-## ?? 配置说明
-
-<details>
-<summary><b>? API Key 配置</b></summary>
-
-通过环境变量或 `.env` 文件配置 (不要硬编码 API Key):
+API keys are configured via environment variables or `.env` file (do NOT hardcode API keys):
 
 ```bash
-# .env 文件
-MONITOR_API_KEY=sk-ant-xxx      # Tier-1 监控 Agent
-DIAGNOSTIC_API_KEY=sk-ant-xxx   # Tier-2 诊断 Agent
-REPAIR_API_KEY=sk-ant-xxx       # Tier-3 修复 Agent
+# .env file
+MONITOR_API_KEY=sk-ant-xxx      # Tier-1 Monitor Agent
+DIAGNOSTIC_API_KEY=sk-ant-xxx   # Tier-2 Diagnostic Agent
+REPAIR_API_KEY=sk-ant-xxx       # Tier-3 Repair Agent
 LLM_MODEL=claude-3-5-sonnet-20241022
 MIMO_BASE_URL=https://api.anthropic.com
 ```
 
-3 个 Agent 可以使用同一个 API Key，也可以分别配置模拟不同配额等级。
+All 3 agents can use the same API key, or configure separately to simulate different quota tiers.
 
-</details>
+## v1.0 vs v2.0
 
-<details>
-<summary><b>? 监控阈值</b></summary>
+| Dimension | v1.0 | v2.0 |
+|-----------|------|------|
+| Servers | 3 | 6 (LB / App x2 / DB x2 / Cache) |
+| Services | 6 | 12 (Full e-commerce microservices) |
+| Fault Scenarios | 6 | 8 (+cascading failure, +deployment regression) |
+| Dependency Graph | N/A | 17 edges + BFS traversal |
+| Monitoring | CPU/Memory | SLO burn-rate / p99 / connection pool / GC / circuit breaker |
+| Diagnosis | Simple alerts | Dependency graph traversal, timeline reconstruction, blast radius |
+| Repair Actions | 6 | 11 (+rollback/index/circuit breaker/connection drain...) |
+| Rollback | N/A | Per-step rollback support |
+| Event Tracking | N/A | Full timeline + Post-Mortem |
+| Agent Tools | 6 | 12 (4 tools per agent) |
 
-```python
-THRESHOLDS = {
-    "cpu_critical": 90.0,              # CPU > 90% => CRITICAL
-    "memory_critical": 92.0,           # MEM > 92% => CRITICAL
-    "disk_critical": 90.0,             # DISK > 90% => CRITICAL
-    "error_rate_critical": 0.10,       # 错误率 > 10% => CRITICAL
-    "latency_p99_critical_ms": 2000,   # p99 > 2s => CRITICAL
-    "sla_target": 99.9,                # 三个九
-    "error_budget_burn_rate_threshold": 14.4,  # 2% budget in 1h
-}
-```
+## Use Cases
 
-</details>
+- MCP Multi-Agent collaboration demo
+- Operations automation demonstration
+- SRE best practices showcase
+- Fault diagnosis reasoning chain demo
+- Technical interview project showcase
 
-<details>
-<summary><b>? 升级策略</b></summary>
+## Tech Stack
 
-```python
-ESCALATION_POLICY = {
-    "P0_critical": {"auto_remediate": True,  "requires_approval": False},
-    "P1_high":     {"auto_remediate": True,  "requires_approval": False},
-    "P2_medium":   {"auto_remediate": True,  "requires_approval": True},
-    "P3_low":      {"auto_remediate": False, "requires_approval": True},
-}
-```
-
-</details>
-
-<br>
-
----
-
-## ? v1.0 vs v2.0
-
-| 维度 | v1.0 | v2.0 |
-|:-----|:-----|:-----|
-| **服务器** | 3 台 | 6 台 (LB / App×2 / DB×2 / Cache) |
-| **服务** | 6 个 | 12 个 (完整电商微服务) |
-| **故障场景** | 6 种 | 8 种 (+级联故障, +部署回退) |
-| **依赖图** | ? | ? 17 条依赖 + BFS 遍历 |
-| **监控指标** | CPU/内存 | SLO burn-rate / p99 / 连接池 / GC / 熔断器 |
-| **诊断能力** | 简单告警 | 依赖图遍历 · 时间线重建 · 爆炸半径 |
-| **修复动作** | 6 种 | 11 种 (+回滚/索引/熔断器/连接排空...) |
-| **回滚能力** | ? | ? 每步修复支持回滚 |
-| **事件追踪** | ? | ? 完整时间线 + Post-Mortem |
-| **Agent 工具** | 6 个 | 12 个 (每个 Agent 4 个) |
-
-<br>
+| Component | Technology |
+|-----------|------------|
+| Agent Framework | Custom MCP Server (FastAPI) |
+| LLM | Any Anthropic-compatible API |
+| Communication | MCP (Model Context Protocol) over HTTP |
+| Infrastructure | Simulator (6 servers + 12 services + dependency graph) |
+| Coordinator | Async HTTP orchestration + incident timeline |
+| Monitoring | SLO burn-rate, p50/p99 latency, connection pool, GC, circuit breaker |
 
 ---
 
-## ? 适用场景
+Built with care by Self-Healing Ops Team
 
-- ? **MCP 多 Agent 协作** — 3 个独立 Agent + 协调器编排
-- ? **运维自动化演示** — 真实故障场景 + 自动修复
-- ? **SRE 最佳实践** — SLO burn-rate + 升级策略 + Post-Mortem
-- ? **故障诊断推理** — 依赖图遍历 + 时间线重建
-- ? **技术面试项目** — 完整微服务架构 + 级联故障分析
-
-<br>
-
----
-
-## ?? 技术栈
-
-| 组件 | 技术 |
-|:-----|:-----|
-| **Agent 框架** | 自研 MCP Server (FastAPI) |
-| **LLM** | MiMo v2.5 Pro (Anthropic 兼容 API) |
-| **通信协议** | MCP (Model Context Protocol) over HTTP |
-| **基础设施** | 模拟器 (6 台服务器 + 12 个服务 + 依赖图) |
-| **协调器** | 异步 HTTP 编排 + 事件时间线 |
-| **监控指标** | SLO burn-rate, p50/p99 延迟, 连接池, GC, 熔断器 |
-
-<br>
-
----
-
-<div align="center">
-
-**Built with ?? by Self-Healing Ops Team**
-
-*MCP Multi-Agent · LLM-Driven · Production-Grade AIOps*
-
-</div>
+*MCP Multi-Agent - LLM-Driven - Production-Grade AIOps*
