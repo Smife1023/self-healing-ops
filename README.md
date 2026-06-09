@@ -22,6 +22,11 @@ Realistic e-commerce microservice architecture - 8 production-grade fault scenar
 
 ## Architecture
 
+![Architecture](docs/architecture.png)
+
+<details>
+<summary><b>Text Version (ASCII)</b></summary>
+
 ```
 +-------------------------------------------------------------------------+
 |                   E-Commerce Microservice Platform                        |
@@ -65,6 +70,8 @@ Realistic e-commerce microservice architecture - 8 production-grade fault scenar
                      |   Post-Mortem Report |
                      +-----------------------+
 ```
+
+</details>
 
 ## Features
 
