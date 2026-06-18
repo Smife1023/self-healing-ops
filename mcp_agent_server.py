@@ -11,6 +11,7 @@ endpoints (tools/list, tools/call) with:
   - Health check and readiness probes
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -242,7 +243,7 @@ class MCPAgentServer(ABC):
                             f"Rate limited (429), retrying in {wait}s "
                             f"(attempt {attempt + 1}/{max_retries + 1})"
                         )
-                        time.sleep(wait)
+                        await asyncio.sleep(wait)
                         continue
 
                     response.raise_for_status()
@@ -277,7 +278,7 @@ class MCPAgentServer(ABC):
                     f"LLM timeout (attempt {attempt + 1}/{max_retries + 1})"
                 )
                 if attempt < max_retries:
-                    time.sleep(2 ** attempt)
+                    await asyncio.sleep(2 ** attempt)
                     continue
 
             except httpx.HTTPStatusError as e:
@@ -287,7 +288,7 @@ class MCPAgentServer(ABC):
                     f"{e.response.text[:200]}"
                 )
                 if e.response.status_code >= 500 and attempt < max_retries:
-                    time.sleep(2 ** attempt)
+                    await asyncio.sleep(2 ** attempt)
                     continue
                 break
 

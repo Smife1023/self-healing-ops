@@ -20,9 +20,9 @@ from typing import Optional
 from config import TIMESTAMP_FMT
 
 
-# ~~~~~~~~T~T~T~T~T~T~T~T~T
+# ==========================================
 #  Data Models
-# ~~~~~~~~T~T~T~T~T~T~T~T~T
+# ==========================================
 
 @dataclass
 class ServerMetrics:
@@ -45,6 +45,7 @@ class ServerMetrics:
     tcp_time_wait: int = 30
     iowait_pct: float = 2.0
     uptime_hours: float = 720.0
+    swap_usage: float = 0.0                  # %
 
 
 @dataclass
@@ -113,9 +114,9 @@ class InfraState:
     events: list = field(default_factory=list)
 
 
-# ~~~~~~~~T~T~T~T~T~T~T~T~T
+# ==========================================
 #  Infrastructure Simulator
-# ~~~~~~~~T~T~T~T~T~T~T~T~T
+# ==========================================
 
 class InfrastructureSimulator:
     """
@@ -123,20 +124,19 @@ class InfrastructureSimulator:
 
     Architecture:
         [Load Balancer / Nginx]
-              )?
+              |
         [API Gateway (Kong)]
-          --
-          ~?   ~?       ~?          ~?
+          /    \       \          \
       [user-svc] [order-svc] [payment-svc] [inventory-svc]
-          )?        )?    )?         )?
-          ~?        ~?    ~?         ~?
+          |        |    |         |
+          v        v    v         v
       [MySQL-Primary] [Redis-Cluster] [RabbitMQ]
-          )?
-          ~?
+          |
+          v
       [MySQL-Replica]
-          )?
-      [notification-svc] -? [RabbitMQ]
-      [Elasticsearch] -? [order-svc, user-svc logs]
+          |
+      [notification-svc] <-- [RabbitMQ]
+      [Elasticsearch] <-- [order-svc, user-svc logs]
     """
 
     def __init__(self):
@@ -145,7 +145,7 @@ class InfrastructureSimulator:
         self.incident_id: Optional[str] = None
         self._init_infrastructure()
 
-    # )?)? Initialization ----)?)?)?)?)?)?)?
+    # ---- Initialization ----
 
     def _init_infrastructure(self):
         self._init_servers()
@@ -210,7 +210,7 @@ class InfrastructureSimulator:
 
     def _init_services(self):
         self.state.services = {
-            # )?)? Edge Layer ---)?)?)?)?)?)?)?)?)?)?)?
+            # ---- Edge Layer ----
             "nginx": ServiceStatus(
                 name="nginx", service_type="web", port=80, pid=1234,
                 host="web-lb-01", replicas=1,
@@ -226,7 +226,7 @@ class InfrastructureSimulator:
                 memory_rss_mb=512, thread_count=100,
                 connection_pool_size=200, connection_pool_active=80,
             ),
-            # )?)? Application Layer ---)?)?)?)?
+            # ---- Application Layer ----
             "user-service": ServiceStatus(
                 name="user-service", service_type="app", port=8081, pid=3456,
                 host="app-server-01", replicas=2,
@@ -272,7 +272,7 @@ class InfrastructureSimulator:
                 connection_pool_size=20, connection_pool_active=5,
                 heap_usage_pct=30.0, gc_pause_ms=8.0,
             ),
-            # )?)? Data Layer ---)?)?)?)?)?)?)?)?)?)?)?
+            # ---- Data Layer ----
             "mysql-primary": ServiceStatus(
                 name="mysql-primary", service_type="database", port=3306, pid=6000,
                 host="db-master-01", replicas=1,
@@ -356,7 +356,7 @@ class InfrastructureSimulator:
             ts = (now + timedelta(seconds=offset * 5)).strftime(TIMESTAMP_FMT)
             self.state.logs.append(LogEntry(ts, level, source, msg))
 
-    # )?)? Fault Injection ----)?)?)?)?)?
+    # ---- Fault Injection ----
 
     def inject_anomaly(self, scenario: str = "random") -> str:
         self.anomaly_injected = True
@@ -432,7 +432,7 @@ class InfrastructureSimulator:
         """
         srv = self.state.servers["app-server-01"]
         srv.memory_usage = 96.8
-        srv.swap_usage = 85.0 if hasattr(srv, 'swap_usage') else 85.0
+        srv.swap_usage = 85.0
 
         osvc = self.state.services["order-service"]
         osvc.status = "degraded"
@@ -679,7 +679,7 @@ class InfrastructureSimulator:
         return ("inventory-service v1.6.0 N+1 query regression -- "
                 "847 queries/request, gradual degradation", "P1_high")
 
-    # )?)? Query Methods ----)?)?)?)?)?)?)?
+    # ---- Query Methods ----
 
     def get_monitor_snapshot(self) -> dict:
         """Return a complete monitoring snapshot (as collected by Prometheus/Grafana)."""
@@ -753,7 +753,7 @@ class InfrastructureSimulator:
             for d in self.state.dependencies
         ]
 
-    # )?)? Repair Actions ----)?)?)?)?)?)?)?
+    # ---- Repair Actions ----
 
     def apply_fix(self, action: str, target: str, params: dict = None) -> dict:
         """Execute a repair action and return the result with post-fix snapshot."""
@@ -1031,7 +1031,7 @@ class InfrastructureSimulator:
             f"Circuit breaker reset for {target}: open -> half-open"))
         return result
 
-    # )?)? Health Check ----)?)?)?)?)?)?)?)?)?
+    # ---- Health Check ----
 
     def health_check(self) -> dict:
         """Comprehensive post-repair health verification."""

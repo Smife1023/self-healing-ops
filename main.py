@@ -24,52 +24,52 @@ from infrastructure import InfrastructureSimulator
 from coordinator import MCPCoordinator
 
 
-# )?)? Banner -----)?)?)?)?)?)?)?
+# ====== Banner ======
 
 def print_banner():
     print("""
-~X~~~~~~~~T~T~T~T~[
-~U                    SELF-HEALING OPS v2.0                                ~U
-~U              Intelligent AIOps Self-Healing System                      ~U
-~d~~~~~~~~T~T~T~T~g
-~U                                                                        ~U
-~U   Architecture:  E-Commerce Microservice Platform                      ~U
-~U   Servers:       6 hosts (web, app-?2, db-primary, db-replica, cache)   ~U
-~U   Services:      12 microservices (edge/app/data layers)               ~U
-~U   Fault Scenarios: 8 realistic production incidents                    ~U
-~U                                                                        ~U
-~U   Pipeline:      [Monitor] -> [Diagnostic] -> [Repair] -> [Verify]       ~U
-~U   Agents:        3 MCP Agents (Tier-1/2/3) with separate API keys      ~U
-~U   Protocol:      MCP (Model Context Protocol) over HTTP                ~U
-~U   LLM:           MiMo v2.5 Pro (Anthropic-compatible API)              ~U
-~U                                                                        ~U
-~^~~~~~~~~T~T~T~T~a
++========================================================================+
+|                    SELF-HEALING OPS v2.0                                |
+|              Intelligent AIOps Self-Healing System                      |
++========================================================================+
+|                                                                        |
+|   Architecture:  E-Commerce Microservice Platform                      |
+|   Servers:       6 hosts (web, app-x2, db-primary, db-replica, cache)  |
+|   Services:      12 microservices (edge/app/data layers)               |
+|   Fault Scenarios: 8 realistic production incidents                    |
+|                                                                        |
+|   Pipeline:      [Monitor] -> [Diagnostic] -> [Repair] -> [Verify]     |
+|   Agents:        3 MCP Agents (Tier-1/2/3) with separate API keys      |
+|   Protocol:      MCP (Model Context Protocol) over HTTP                |
+|   LLM:           MiMo v2.5 Pro (Anthropic-compatible API)              |
+|                                                                        |
++========================================================================+
 """)
 
 
-# )?)? Scenario Definitions ----)?)?)?)?
+# ====== Scenario Definitions ======
 
 SCENARIOS = {
-    "1": ("high_cpu",                   "P0 | CPU???? -- ReDoS??????????????"),
-    "2": ("memory_leak",                "P0 | ???????) -- Java Heap OOM????????"),
-    "3": ("service_crash",              "P0 | ???????? -- ????????????+????????"),
-    "4": ("db_slow",                    "P1 | ???????????? -- ?????~??+????????"),
-    "5": ("connection_pool_exhaustion", "P1 | ?????????- -- Redis???????)+???????-"),
-    "6": ("disk_full",                  "P0 | ?????u -- Binlog 90????????"),
-    "7": ("cascading_failure",          "P0 | ???????? -- Redis???u-u???????)-uDB????"),
-    "8": ("deployment_regression",      "P1 | ???????? -- N+1??????????????????"),
-    "9": ("random",                     "??  | ???u?????-??"),
+    "1": ("high_cpu",                   "P0 | CPU Spike -- ReDoS infinite regex backtrack"),
+    "2": ("memory_leak",                "P0 | Memory Leak -- Java Heap OOM crash loop"),
+    "3": ("service_crash",              "P0 | Service Crash -- config missing + rollback fail"),
+    "4": ("db_slow",                    "P1 | DB Slow Query -- full scan + lock wait + repl lag"),
+    "5": ("connection_pool_exhaustion", "P1 | Conn Pool Exhaust -- Redis leak + port exhaustion"),
+    "6": ("disk_full",                  "P0 | Disk Full -- Binlog 90 days unrotated"),
+    "7": ("cascading_failure",          "P0 | Cascade Fail -- Redis down -> cache miss -> DB overload"),
+    "8": ("deployment_regression",      "P1 | Deploy Regression -- N+1 query perf degradation"),
+    "9": ("random",                     "Rnd | Random fault scenario"),
 }
 
 
 def print_scenarios():
     """Print available fault scenarios."""
-    print("\n~X~~~~~~~T~T~[")
-    print("~U  AVAILABLE FAULT SCENARIOS                                  ~U")
-    print("~d~~~~~~~T~T~g")
+    print("\n" + "-" * 70)
+    print("  AVAILABLE FAULT SCENARIOS")
+    print("-" * 70)
     for key, (scenario, desc) in SCENARIOS.items():
-        print(f"~U  {key}. {desc:55s} ~U")
-    print("~^~~~~~~~T~T~a")
+        print(f"  {key}. {desc}")
+    print("-" * 70)
 
 
 def get_valid_scenario(arg: str) -> str:
@@ -84,7 +84,7 @@ def get_valid_scenario(arg: str) -> str:
     return "random"
 
 
-# )?)? Agent Process Launcher ----)?)?)?
+# ---- Agent Process Launcher ----
 
 def run_agent_process(agent_type: str, infra_state: dict):
     """Run a single agent MCP server in a separate process."""
@@ -111,7 +111,7 @@ def run_agent_process(agent_type: str, infra_state: dict):
     uvicorn.run(agent.app, host="127.0.0.1", port=cfg["port"], log_level="warning")
 
 
-# )?)? Single-Process Mode (Recommended) ---)?)?)?
+# ---- Single-Process Mode (Recommended) ----
 
 async def run_single_process_mode(scenario: str):
     """
@@ -129,7 +129,7 @@ async def run_single_process_mode(scenario: str):
 
     infra = InfrastructureSimulator()
 
-    # )?)? Inject Fault ----)?)?)?)?)?
+    # ---- Inject Fault ----
     print(f"\n  [INJECT] Injecting fault scenario: {scenario}")
     actual_scenario = infra.inject_anomaly(scenario)
     print(f"  [INJECT] Actual scenario: {actual_scenario}")
@@ -150,7 +150,7 @@ async def run_single_process_mode(scenario: str):
         level_icon = {"FATAL": "!!!", "ERROR": "ERR", "WARN": "WRN", "INFO": "INF"}.get(log.level, "---")
         print(f"    [{level_icon}] {log.source}: {log.message[:100]}")
 
-    # )?)? Step 1: Monitor Agent ---)?)?)?)?)?)?)?)?
+    # ---- Step 1: Monitor Agent ----
     print("\n" + "-" * 60)
     print("  [Step 1/5] MonitorAgent: Anomaly detection & SLO analysis...")
     print("-" * 60)
@@ -160,7 +160,7 @@ async def run_single_process_mode(scenario: str):
     print(f"\n  [MONITOR RESULT]:")
     _print_json_summary(monitor_result, max_chars=600)
 
-    # )?)? Step 2: Diagnostic Agent ---)?)?)?)?)?
+    # ---- Step 2: Diagnostic Agent ----
     print("\n" + "-" * 60)
     print("  [Step 2/5] DiagnosticAgent: Root cause analysis...")
     print("-" * 60)
@@ -170,7 +170,7 @@ async def run_single_process_mode(scenario: str):
     print(f"\n  [DIAGNOSIS RESULT]:")
     _print_json_summary(diagnostic_result, max_chars=800)
 
-    # )?)? Step 3: Repair Plan ---)?)?)?)?)?)?)?)?)?)?
+    # ---- Step 3: Repair Plan ----
     print("\n" + "-" * 60)
     print("  [Step 3/5] RepairAgent: Creating repair runbook...")
     print("-" * 60)
@@ -180,7 +180,7 @@ async def run_single_process_mode(scenario: str):
     print(f"\n  [REPAIR PLAN]:")
     _print_json_summary(plan_result, max_chars=600)
 
-    # )?)? Step 4: Execute Repairs ---)?)?)?)?)?)?
+    # ---- Step 4: Execute Repairs ----
     print("\n" + "-" * 60)
     print("  [Step 4/5] RepairAgent: Executing repair steps...")
     print("-" * 60)
@@ -221,7 +221,7 @@ async def run_single_process_mode(scenario: str):
         print(f"      Health: {h['overall'].upper()} "
               f"(services: {h['healthy_services']}/{h['total_services']})")
 
-    # )?)? Step 5: Verify ----)?)?)?
+    # ---- Step 5: Verify ----
     print("\n" + "-" * 60)
     print("  [Step 5/5] Post-repair verification...")
     print("-" * 60)
@@ -250,7 +250,7 @@ async def run_single_process_mode(scenario: str):
     print("=" * 70)
 
 
-# )?)? Distributed Mode ----)?)?)?)?)?)?)?)?)?
+# ---- Distributed Mode ----
 
 async def run_pipeline(infra: InfrastructureSimulator, scenario: str):
     """Run the pipeline via HTTP calls to distributed agents."""
@@ -310,7 +310,7 @@ def start_agents():
     return processes
 
 
-# )?)? Utilities -----)?)?)?)?
+# ---- Utilities ----
 
 def _print_json_summary(json_str: str, max_chars: int = 800):
     """Print a summary of JSON output."""
@@ -355,7 +355,7 @@ def _extract_actions_from_text(text: str) -> list[dict]:
     return actions
 
 
-# )?)? Interactive Scenario Selection ---)?)?)?)?)?)?)?
+# ---- Interactive Scenario Selection ----
 
 def select_scenario() -> str:
     print_scenarios()
@@ -366,7 +366,7 @@ def select_scenario() -> str:
     return "random"
 
 
-# )?)? Main Entry -----)?)?)?
+# ---- Main Entry ----
 
 def main():
     print_banner()

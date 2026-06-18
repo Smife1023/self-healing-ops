@@ -6,8 +6,10 @@ import json
 import os
 import subprocess
 
-API_KEY = "sk-YTgpFSrj1qSFxI3lE5447c39CaCe4592Aa0f9735DaDc6b9c"
-API_URL = "https://aihubmix.com/v1/images/generations"
+API_KEY = os.getenv("IMAGEGEN_API_KEY", "")
+if not API_KEY:
+    raise ValueError("IMAGEGEN_API_KEY environment variable is required")
+API_URL = os.getenv("IMAGEGEN_API_URL", "https://aihubmix.com/v1/images/generations")
 OUTPUT_PATH = "docs/architecture.png"
 
 prompt = (

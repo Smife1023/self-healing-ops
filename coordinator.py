@@ -145,11 +145,11 @@ class MCPCoordinator:
             print(f"  STARTED: {datetime.now().strftime(TIMESTAMP_FMT)}")
             print("=" * 70)
 
-        # )?)? Step 1: Monitor ----)?)?
+        # ---- Step 1: Monitor ----
         timeline.add_event("PIPELINE_START", "Coordinator", "Self-healing pipeline initiated")
         if verbose:
             print("\n" + "-" * 50)
-            print("  [Step 1/5] ? MonitorAgent: Detecting anomalies...")
+            print("  [Step 1/5] >> MonitorAgent: Detecting anomalies...")
             print("-" * 50)
 
         monitor_result = await self._call_mcp_tool(self.monitor_url, "monitor_check")
@@ -176,10 +176,10 @@ class MCPCoordinator:
             print(f"  [ALERT] Summary: {anomaly_summary}")
             self._print_json_truncated("Monitor Report", monitor_result, max_chars=800)
 
-        # )?)? Step 2: Diagnosis ----
+        # ---- Step 2: Diagnosis ----
         if verbose:
             print("\n" + "-" * 50)
-            print("  [Step 2/5] ? DiagnosticAgent: Root cause analysis...")
+            print("  [Step 2/5] >> DiagnosticAgent: Root cause analysis...")
             print("-" * 50)
 
         diagnostic_result = await self._call_mcp_tool(
@@ -213,10 +213,10 @@ class MCPCoordinator:
             print(f"  [DIAGNOSIS] User Impact: {user_impact}")
             self._print_json_truncated("Diagnosis Report", diagnostic_result, max_chars=800)
 
-        # )?)? Step 3: Repair Plan ---)?)?)?)?)?)?)?)?)?)?
+        # ---- Step 3: Repair Plan ----
         if verbose:
             print("\n" + "-" * 50)
-            print("  [Step 3/5] ? RepairAgent: Creating repair plan...")
+            print("  [Step 3/5] >> RepairAgent: Creating repair plan...")
             print("-" * 50)
 
         repair_plan_result = await self._call_mcp_tool(
@@ -251,10 +251,10 @@ class MCPCoordinator:
                       f"{step.get('action', '?')} -> {step.get('target', '?')} "
                       f"(risk: {step.get('risk', '?')})")
 
-        # )?)? Step 4: Execute Repairs ---)?)?)?)?)?)?
+        # ---- Step 4: Execute Repairs ----
         if verbose:
             print("\n" + "-" * 50)
-            print(f"  [Step 4/5] ?? RepairAgent: Executing {len(repair_steps)} repair steps...")
+            print(f"  [Step 4/5] >> RepairAgent: Executing {len(repair_steps)} repair steps...")
             print("-" * 50)
 
         repair_results = []
@@ -266,7 +266,7 @@ class MCPCoordinator:
             expected = step.get("expected_result", "N/A")
 
             if verbose:
-                phase_icon = {"mitigate": "??", "resolve": "??", "verify": "??", "prevent": "??"}.get(phase, "??")
+                phase_icon = {"mitigate": ">>", "resolve": "##", "verify": "OK", "prevent": "--"}.get(phase, "  ")
                 print(f"\n  {phase_icon} [{i}/{len(repair_steps)}] {phase.upper()}: {action} -> {target}")
                 print(f"     Risk: {risk} | Expected: {expected}")
 
@@ -283,12 +283,12 @@ class MCPCoordinator:
                 try:
                     r = json.loads(exec_result)
                     success = r.get("success", False)
-                    status = "? OK" if success else "? FAIL"
+                    status = "[OK]" if success else "[FAIL]"
                     print(f"     Result: {status} - {r.get('message', '')}")
                     for act in r.get("actions_taken", []):
                         print(f"       -> {act}")
                     for side in r.get("side_effects", []):
-                        print(f"       ?? {side}")
+                        print(f"       ** {side}")
                 except (json.JSONDecodeError, TypeError):
                     print(f"     Result: {str(exec_result)[:200]}")
 
@@ -305,10 +305,10 @@ class MCPCoordinator:
 
         pipeline_result["steps"].append({"agent": "RepairAgent", "tool": "execute_repair", "results": repair_results})
 
-        # )?)? Step 5: Verify ----)?)?)?
+        # ---- Step 5: Verify ----
         if verbose:
             print("\n" + "-" * 50)
-            print("  [Step 5/5] ?? Post-repair verification...")
+            print("  [Step 5/5] >> Post-repair verification...")
             print("-" * 50)
 
         final_health = self.infra.health_check()
@@ -332,7 +332,7 @@ class MCPCoordinator:
                 for v in final_health["slo_violations"]:
                     print(f"  [SLO] {v['service']}: {v['current_availability']} (target: {v['slo_target']})")
             if not final_health["unhealthy_servers"] and not final_health["unhealthy_services"]:
-                print("  ? All components recovered!")
+                print("  ** All components recovered!")
 
         timeline.resolve()
         pipeline_result["timeline"] = timeline.to_dict()
